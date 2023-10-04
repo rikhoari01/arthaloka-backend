@@ -54,9 +54,21 @@ class AtmController extends Controller
             return response_json(400, 'failed', 'Error saving atm data');
         }
 
-        $casette = Casette::create([
-            'atm_id' => $atm->id,
-        ]);
+        $data_casette = array(
+            'atm_id' => $atm->id
+        );
+
+        if (isset($request->casette)) {
+            $input_casette = $request->casette;
+
+            foreach ($input_casette as $data) {
+                if ($data['value'] != null) {
+                    $data_casette[$data['name']] = $data['value'];
+                }
+            }
+        }
+
+        $casette = Casette::create($data_casette);
 
         // Return error if failed save new casette
         if (!$casette) {
@@ -97,16 +109,15 @@ class AtmController extends Controller
             return response_json(400, 'failed', 'Error saving atm data');
         }
 
-        $data_casette = $request->casette;
-        $casette = $atm->casette()->update([
-            'casette_1' => $data_casette[0],
-            'casette_2' => $data_casette[1],
-            'casette_3' => $data_casette[2],
-            'casette_4' => $data_casette[3],
-            'casette_5' => $data_casette[4],
-            'casette_6' => $data_casette[5],
-            'casette_7' => $data_casette[6],
-        ]);
+        $input_casette = $request->casette;
+
+        foreach ($input_casette as $data) {
+            if ($data['value'] != null) {
+                $data_casette[$data['name']] = $data['value'];
+            }
+        }
+
+        $casette = $atm->casette()->update($data_casette);
 
         // Return error if failed update casette
         if (!$casette) {
