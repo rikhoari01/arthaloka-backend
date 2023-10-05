@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class HistoryHeader extends Model
 {
@@ -19,5 +20,15 @@ class HistoryHeader extends Model
     public function detail(): HasOne
     {
         return $this->hasOne(HistoryDetail::class);
+    }
+
+    public function atm(): BelongsTo
+    {
+        return $this->belongsTo(Atm::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

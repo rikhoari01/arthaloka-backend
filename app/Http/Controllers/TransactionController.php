@@ -9,6 +9,7 @@ use App\Models\HistoryDetail;
 use App\Models\HistoryHeader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use stdClass;
 
 class TransactionController extends Controller
 {
@@ -16,13 +17,13 @@ class TransactionController extends Controller
     {
         if (isset($request->id)) {
             // Get history by id
-            $history = HistoryHeader::with('detail')->find($request->id); 
+            $history = HistoryHeader::with(['detail', 'atm', 'customer'])->find($request->id); 
         } else if (isset($request->customer_id)) {
             // Get history by customer id
-            $history = Customer::with('history.detail')->find($request->customer_id);
+            $history = Customer::with('history.atm')->find($request->customer_id);
         } else {
             // Get all history with casette
-            $history = HistoryHeader::with('detail')->get();
+            $history = HistoryHeader::with(['atm', 'customer'])->get();
         }
 
         // Returm response
@@ -36,7 +37,7 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'customer_id' => 'required',
+            'customer_account' => 'required',
             'atm_id' => 'required',
             'amount_withdraw' => 'required',
         ]);
@@ -45,19 +46,23 @@ class TransactionController extends Controller
             return response_json(422, 'failed', $validator->messages());
         }
 
-        $customer = Customer::find($request->customer_id);
+        $customer = Customer::where('account', $request->customer_account)->get()->first();
         $atm = Atm::find($request->atm_id);
 
-        // Return error if customer and atm not found
-        if ($customer == null || $atm == null) {
-            return response_json(400, 'failed', 'Error for create new transaction');
+        // Return error if customer not found
+        if ($customer == null) {
+            return response_json(400, 'failed', 'Customer account not found');
+        }
+        // Return error if atm not found
+        if ($atm == null) {
+            return response_json(400, 'failed', 'ATM not found');
         }
 
         $amount = $request->amount_withdraw;
 
         // Return error if customer balance insufficient
         if ($customer->balance < $amount) {
-            return response_json(400, 'failed', 'Customer balance is insufficient');
+            return response_json(400, 'failed', 'Customer balance is insufficient. Remaining balance is Rp. ' . number_format($customer->balance, 0, ',', '.'));
         }
 
         $casettes= $atm->casette;
@@ -111,7 +116,14 @@ class TransactionController extends Controller
             'casette_7' => $fractions['casette_7'],
         ]);
 
-        return response_json(200, 'success', 'Transaction was successfull');
+        $result = new stdClass;
+        $result = [
+            'customer' => $customer,
+            'history' => $history_header,
+            'detail' => $history_detail,
+        ];
+
+        return response_json(200, 'success', $result);
     }
 
     protected function getFractions($amount, $casettes) {

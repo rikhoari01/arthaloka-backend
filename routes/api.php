@@ -28,6 +28,9 @@ Route::post('auth/login', [AuthController::class, 'login']);
 // Route for Transaction
 Route::post('transaction', [TransactionController::class, 'store'])->name('transaction.store');
 
+// Route get atm list
+Route::get('atm/list', [AtmController::class, 'list'])->name('atm.list');
+
 Route::group(['middleware' => 'jwt.verify'], function () {
     // Authentication
     Route::group(['prefix' => 'auth'], function () {

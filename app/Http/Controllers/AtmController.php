@@ -22,7 +22,19 @@ class AtmController extends Controller
             $atm = Atm::with('casette')->get();
         }
 
-        // Returm response
+        // Return response
+        if ($atm != null) {
+            return response_json(200, 'success', $atm);
+        }
+        
+        return response_json(404, 'failed', 'There is no atm');
+    }
+
+    public function list()
+    {
+        $atm = Atm::all();
+
+        // Return response
         if ($atm != null) {
             return response_json(200, 'success', $atm);
         }
